@@ -1,4 +1,4 @@
-.App {
+/* .App {
   text-align: center;
 }
 
@@ -35,4 +35,35 @@
   to {
     transform: rotate(360deg);
   }
+} */
+
+.customBox{
+  height: 48px;
+  width: 48px;
+  /* background-color: #61dafb; */
+  border-color: black;
+  border-width: 1px;
+  border-style: solid;
+}
+
+.globalContainer{
+  height: 100%;
+  width: 100%;
+}
+
+.container{
+  height: 100px;
+  width: 100px;
+  margin: auto;
+}
+
+.wrapper{
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.features{
+  height: 100px;
+  margin:auto;
 }

@@ -1,8 +1,30 @@
 import logo from './logo.svg';
 import './App.css';
+import { useState } from 'react';
 
 function App() {
+  const [colour,setColour] = useState("white");
+
+  
   return (
+    <>
+    
+    <div className="globalContainer">
+      <div className="container">
+        <div className="wrapper">
+
+          <div className="customBox"/>
+          <div className="customBox"/>
+          <div className="customBox"/>
+          <div className="customBox"/>
+
+        </div>
+      </div>
+      <div className="features">
+      </div>
+    </div>
+
+    {/*
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
@@ -19,6 +41,8 @@ function App() {
         </a>
       </header>
     </div>
+    */}
+    </>
   );
 }
 
