@@ -67,7 +67,10 @@
   height: 100px;
   margin:auto;
 }
-.colourPicker{
-  height: 100px;
-  margin:auto;
+.colorPicker{
+  margin-top: 50px;
+  margin-bottom: 50px;
+  align-items: center;
+  justify-content: center;
+  display: flex;
 }
