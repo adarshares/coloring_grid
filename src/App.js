@@ -92,19 +92,31 @@ function App() {
   function handleClick(event){
     let prevColorList = [...colorList];//create a new array since directly equating gives the same object
     let prevColor = prevColorList[+event.target.id];
-    prevColorList[+event.target.id] = color;
-    console.log(event.target.id);
 
     let newStack = [...stack];
     let newStackIndex = [...stackIndex];
     let newStackPointer = stackPointer;
-    newStack.push(prevColor);
-    newStack.push(color);
-    newStackIndex.push(event.target.id);
-    newStackIndex.push(event.target.id);
 
-    newStackPointer = +newStackPointer+1;
-    
+    if(newStackPointer%2 == 0){
+      newStack.length = stackPointer;
+      newStackIndex.length = stackPointer;
+      newStack.push(prevColor);
+      newStack.push(color);
+      newStackIndex.push(event.target.id);
+      newStackIndex.push(event.target.id);
+      newStackPointer = +newStackPointer + 1;
+    }
+    else{
+      newStack.push(prevColor);
+      newStack.push(color);
+      newStackIndex.push(event.target.id);
+      newStackIndex.push(event.target.id);
+      newStackPointer = +newStackPointer + 2;
+    }
+
+    newStackPointer = newStackPointer.toString();
+
+    prevColorList[+event.target.id] = color;
 
     setColorList(prevColorList);
     handleLocalStorageColorList(prevColorList);
@@ -146,28 +158,48 @@ function App() {
     handleLocalStorageStackPointer("-1");
   }
   function handleUndoButton(){
-    if(stackPointer === "-1"){return;}
+    if(stackPointer === "-1" || stackPointer === "0"){return;}
+
+    let newStackPointer = stackPointer;
+
+    if(newStackPointer%2 == 0){
+      newStackPointer = +newStackPointer - 2;
+    }
+    else{
+      newStackPointer = +newStackPointer - 1;
+    }
     let prevColorList = [...colorList];
-    prevColorList[+stackIndex[+stackPointer]] = stack[+stackPointer];
+    prevColorList[+stackIndex[+newStackPointer]] = stack[+newStackPointer];
+
+    newStackPointer = newStackPointer.toString();
+
     setColorList(prevColorList);
     handleLocalStorageColorList(prevColorList);
 
-    let newStackPointer = +stackPointer - 1;
-    newStackPointer = newStackPointer.toString();
     setStackPointer(newStackPointer);
     handleLocalStorageStackPointer(newStackPointer);
   }
   function handleRedoButton(){
-    if((+stackPointer + 1) == stack.length){
+    if((+stackPointer + 1) >= stack.length){
       return;
     }
-    let newStackPointer = +stackPointer + 1;
+    let newStackPointer = stackPointer;
+    if(newStackPointer%2 == 0){
+      newStackPointer = +newStackPointer + 1;
+    }
+    else{
+      newStackPointer = +newStackPointer + 2;
+    }
+
+
+
+    let prevColorList = [...colorList];
+    prevColorList[+stackIndex[+newStackPointer]] = stack[+newStackPointer];
+
     newStackPointer = newStackPointer.toString();
     setStackPointer(newStackPointer);
     handleLocalStorageStackPointer(newStackPointer);
 
-    let prevColorList = [...colorList];
-    prevColorList[+stackIndex[+newStackPointer]] = stack[+newStackPointer];
     setColorList(prevColorList);
     handleLocalStorageColorList(prevColorList);
   }
