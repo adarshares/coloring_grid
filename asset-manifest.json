@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/coloring_grid/static/css/main.44eef862.css",
+    "main.js": "/coloring_grid/static/js/main.76c33ef9.js",
+    "static/js/787.20cf1107.chunk.js": "/coloring_grid/static/js/787.20cf1107.chunk.js",
+    "index.html": "/coloring_grid/index.html",
+    "main.44eef862.css.map": "/coloring_grid/static/css/main.44eef862.css.map",
+    "main.76c33ef9.js.map": "/coloring_grid/static/js/main.76c33ef9.js.map",
+    "787.20cf1107.chunk.js.map": "/coloring_grid/static/js/787.20cf1107.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.44eef862.css",
+    "static/js/main.76c33ef9.js"
+  ]
+}
