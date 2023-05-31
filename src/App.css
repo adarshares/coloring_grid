@@ -38,8 +38,8 @@
 } */
 
 .customBox{
-  height: 48px;
-  width: 48px;
+  height: 18px;
+  width: 18px;
   /* background-color: #61dafb; */
   border-color: black;
   border-width: 1px;
@@ -52,8 +52,8 @@
 }
 
 .container{
-  height: 100px;
-  width: 100px;
+  height: 320px;
+  width: 320px;
   margin: auto;
 }
 
@@ -65,7 +65,10 @@
 
 .features{
   height: 100px;
-  margin:auto;
+  display:flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
 }
 .colorPicker{
   margin-top: 50px;
