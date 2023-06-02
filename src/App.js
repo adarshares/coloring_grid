@@ -2,15 +2,11 @@ import './App.css';
 import { useState } from 'react';
 import Box from './components/Box';
 import { CirclePicker } from 'react-color';
+import { KEYCOLOR,KEYCOLORLIST,KEYSTACK,KEYSTACKINDEX,KEYSTACKPOINTER } from './constant/constants';
 
-const keyColorList = "ColorList";
-const keyColor = "Color";
-const keyStack = "Stack";
-const keyStackIndex = "StackIndex";
-const keyStackPointer = "StackPointer";
 
 function initializeColorList(){
-  let colorList = window.localStorage.getItem(keyColorList);
+  let colorList = window.localStorage.getItem(KEYCOLORLIST);
   if(colorList){
     colorList = colorList.split(",");
   }
@@ -21,7 +17,7 @@ function initializeColorList(){
 }
 
 function initializeColor(){
-  let color = window.localStorage.getItem(keyColor);
+  let color = window.localStorage.getItem(KEYCOLOR);
   if(color){
   }
   else{
@@ -31,7 +27,7 @@ function initializeColor(){
 }
 
 function initializeStack(){
-  let stack = window.localStorage.getItem(keyStack);
+  let stack = window.localStorage.getItem(KEYSTACK);
   if(stack){
     stack = stack.split(",");
   }
@@ -42,7 +38,7 @@ function initializeStack(){
 }
 
 function initializeStackIndex(){
-  let stackIndex = window.localStorage.getItem(keyStackIndex);
+  let stackIndex = window.localStorage.getItem(KEYSTACKINDEX);
   if(stackIndex){
     stackIndex = stackIndex.split(',');
   }
@@ -53,7 +49,7 @@ function initializeStackIndex(){
 }
 
 function initializeStackPointer(){
-  let stackPointer = window.localStorage.getItem(keyStackPointer);
+  let stackPointer = window.localStorage.getItem(KEYSTACKPOINTER);
   if(stackPointer == null){
     stackPointer = -1;
   }
@@ -62,23 +58,23 @@ function initializeStackPointer(){
 
 
 function handleLocalStorageColorList(colorList){
-  window.localStorage.setItem(keyColorList,colorList.toString());
+  window.localStorage.setItem(KEYCOLORLIST,colorList.toString());
 }
 
 function handleLocalStorageColor(color){
-  window.localStorage.setItem(keyColor,color);
+  window.localStorage.setItem(KEYCOLOR,color);
 }
 
 function handleLocalStorageStack(stack){
-  window.localStorage.setItem(keyStack,stack.toString());
+  window.localStorage.setItem(KEYSTACK,stack.toString());
 }
 
 function handleLocalStorageStackIndex(stackIndex){
-  window.localStorage.setItem(keyStackIndex,stackIndex.toString());
+  window.localStorage.setItem(KEYSTACKINDEX,stackIndex.toString());
 }
 
 function handleLocalStorageStackPointer(stackPointer){
-  window.localStorage.setItem(keyStackPointer,stackPointer);
+  window.localStorage.setItem(KEYSTACKPOINTER,stackPointer);
 }
 
 function App() {
