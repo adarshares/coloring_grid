@@ -1,5 +1,5 @@
-export const KEYCOLORLIST = "ColorList";
-export const KEYCOLOR = "Color";
-export const KEYSTACK = "Stack";
-export const KEYSTACKINDEX = "StackIndex";
-export const KEYSTACKPOINTER = "StackPointer";
+export const KEY_COLOR_LIST = "ColorList";
+export const KEY_COLOR = "Color";
+export const KEY_STACK = "Stack";
+export const KEY_STACK_INDEX = "StackIndex";
+export const KEY_STACK_POINTER = "StackPointer";
