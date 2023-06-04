@@ -1,13 +1,13 @@
 import React from 'react'
 import "./../App.css"
-import { handleRedoButton, handleUndoButton, handleResetButton } from './StateHandler'
+//import { handleRedoButton, handleUndoButton, handleResetButton } from './StateHandler'
 
-function Features() {
+function Features(props) {
   return (
     <div className="features">
-        <button onClick={handleResetButton}>RESET</button>
-        <button onClick={handleUndoButton}>UNDO</button>
-        <button onClick={handleRedoButton}>REDO</button>
+        <button onClick={props.onResetClick}>RESET</button>
+        <button onClick={props.onUndoClick}>UNDO</button>
+        <button onClick={props.onRedoClick}>REDO</button>
     </div>
   )
 }

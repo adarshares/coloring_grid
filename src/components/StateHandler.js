@@ -92,17 +92,9 @@ export const stack = initializeStack();
 export const stackIndex = initializeStackIndex();
 export const stackPointer = initializeStackPointer();
 
-// const [color,setColor] = useState(initializeColor());
-// const [colorList,setColorList] = useState(initializeColorList());
-// const [stack,setStack] = useState(initializeStack());
-// const [stackIndex,setStackIndex] = useState(initializeStackIndex());
-// const [stackPointer,setStackPointer] = useState(initializeStackPointer());
-
 
 export const handleClick=(id)=>{
-  
   let prevColor = colorList[+id];
-
   if(+stackPointer[0]%2 == 0){
     stack.length = +stackPointer[0];
     stackIndex.length = +stackPointer[0];
@@ -138,7 +130,6 @@ export const handleColorPick=(colorName)=>{
 export const handleResetButton = () => {
   color[0] = "white";
   handleLocalStorageColor(color);
-
   for(let i = 0;i<colorList.length;i++){
     colorList[i] = "white";
   }
