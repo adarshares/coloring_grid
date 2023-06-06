@@ -3,15 +3,18 @@ import { useCallback, useReducer } from 'react';
 import Box from './components/Box';
 import ColorPicker from './components/ColorPicker';
 import { KEY_STATE, INITIAL_STATE } from './constant/constants';
+import { Action, State, ColorFromPalette } from './constant/interfaces';
+import { ACTION_TYPES } from './constant/interfaces';
 
-function handleLocalStorage(state){
+
+function handleLocalStorage(state:State){
   window.localStorage.setItem(KEY_STATE,JSON.stringify(state));
 }
 
-const InitializeState = (init) => {
-  const state = {
+const InitializeState = (init:object) => {
+  const state:State = {
     ...INITIAL_STATE,
-    ...(JSON.parse(window.localStorage.getItem(KEY_STATE))),
+    ...(JSON.parse(window.localStorage.getItem(KEY_STATE)??"{}")),
   };
   handleLocalStorage(state);
   return state;
@@ -24,14 +27,17 @@ cellsColorHistory:[],
 cellsIndexHistory:[],
 cellsCurrentPointer:-1,
 */
-const insertStateChanges=(cellsColorHistory,cellsIndexHistory,prevColor,currentColor,id)=>{
+const insertStateChanges=(cellsColorHistory:Array<string> ,cellsIndexHistory:Array<number> ,prevColor:string ,currentColor:string ,id:number)=>{
   cellsColorHistory.push(prevColor);
   cellsColorHistory.push(currentColor);
   cellsIndexHistory.push(id);
   cellsIndexHistory.push(id);
 }
 
-const handleCellClick = (prevState,id) => {
+const handleCellClick = (prevState:State,id:number|undefined) => {
+  if(id === undefined){
+    return prevState;
+  }
   const prevPointer = prevState.cellsCurrentPointer;
   if(prevPointer%2 == 0){
     prevState.cellsColorHistory.splice(prevPointer);
@@ -44,7 +50,7 @@ const handleCellClick = (prevState,id) => {
     cellsCurrentPointer : prevPointer%2 ? prevPointer + 2 : prevPointer+1,
   }
 }
-const handleUndo=(prevState)=>{
+const handleUndo=(prevState:State)=>{
   if(prevState.cellsCurrentPointer === -1 || prevState.cellsCurrentPointer === 0){return null;}
   const prevPointer = prevState.cellsCurrentPointer;
   const newPointer = prevPointer%2?prevPointer-1:prevPointer-2;
@@ -56,7 +62,7 @@ const handleUndo=(prevState)=>{
   }
 }
 
-const handleRedo=(prevState)=>{
+const handleRedo=(prevState:State)=>{
   if(prevState.cellsCurrentPointer+1 >= prevState.cellsColorHistory.length){return null;}
   const prevPointer = prevState.cellsCurrentPointer;
   const newPointer = prevPointer%2?prevPointer+2:prevPointer+1;
@@ -72,7 +78,10 @@ const handleReset = ()=>{
     ...INITIAL_STATE,
   };
 }
-const handleColorPick=(prevState,colorName)=>{
+const handleColorPick=(prevState:State,colorName:string|undefined)=>{
+  if(colorName === undefined){
+    return prevState;
+  }
   return {
     ...prevState,
     selectedColor : colorName,
@@ -80,9 +89,9 @@ const handleColorPick=(prevState,colorName)=>{
 }
 
 //CHANGE_CELL_COLOR, UNDO, REDO, RESET, COLOR_PICK
-function reducer(prevState,action){
+function reducer(prevState:State,action:Action){
   switch(action.type){
-    case "CHANGE_CELL_COLOR":{//change cell color
+    case ACTION_TYPES.CHANGE_CELL_COLOR:{//change cell color
       const newState = {
         ...prevState,
         ...handleCellClick(structuredClone(prevState),action.id),
@@ -91,7 +100,7 @@ function reducer(prevState,action){
       return newState;
     }
 
-    case "UNDO":{
+    case ACTION_TYPES.UNDO:{
       const newState = {
         ...prevState,
         ...handleUndo(structuredClone(prevState)),
@@ -100,7 +109,7 @@ function reducer(prevState,action){
       return newState;
     }
 
-    case "REDO":{
+    case ACTION_TYPES.REDO:{
       const newState = {
         ...prevState,
         ...handleRedo(structuredClone(prevState)),
@@ -109,14 +118,14 @@ function reducer(prevState,action){
       return newState;
     }
 
-    case "RESET":{
+    case ACTION_TYPES.RESET:{
       const newState = {
         ...handleReset(),
       };
       handleLocalStorage(newState);
       return newState;
     }
-    case "COLOR_PICK":{
+    case ACTION_TYPES.COLOR_PICK:{
       const newState = {
         ...prevState,
         ...handleColorPick(structuredClone(prevState),action.colorName),
@@ -134,9 +143,9 @@ function App() {
   const [state,dispatch] = useReducer(reducer,{},InitializeState);
 
   const features = [
-    {type: 'RESET', label: 'Reset'},
-    {type: 'UNDO', label: 'Undo'},
-    {type: 'REDO', label: 'Redo'},
+    {type: ACTION_TYPES.RESET, label: "Reset"},
+    {type: ACTION_TYPES.UNDO, label: "Undo"},
+    {type: ACTION_TYPES.REDO, label: "Redo"},
   ];
   
   return (
@@ -144,11 +153,11 @@ function App() {
     
       <div className="globalContainer">
         
-        <ColorPicker onChange={(colorName)=>{dispatch({type:"COLOR_PICK",colorName:colorName.hex})}}/>
+        <ColorPicker onChange={(colorName:ColorFromPalette)=>{dispatch({type:"COLOR_PICK",colorName:(colorName.hex).toString()})}}/>
         <div className="container">
           <div className="wrapper">
             {state.colorOfCells.map((item,index) => {
-              return <Box key={index} boxColor={item} id={`${index}`} onClick={dispatch} selectedColor={state.selectedColor}/>;
+              return <Box key={index} boxColor={item} id={index} onClick={dispatch} selectedColor={state.selectedColor}/>;
             })}
           </div>
         </div>

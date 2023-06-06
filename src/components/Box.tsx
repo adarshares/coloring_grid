@@ -1,7 +1,8 @@
 import React, { memo, useState } from 'react';
 import "./../App.css";
+import { BoxProps } from '../constant/interfaces';
 
-const Box = memo((props)=>{
+const Box = memo((props:BoxProps)=>{
   const [hover,setHover] = useState(false);
   const handleMouseEnter=()=>{
     setHover(true);
@@ -14,7 +15,7 @@ const Box = memo((props)=>{
   }
   //console.log(`component ${props.id} rendered`)
   return (
-    <div style={{backgroundColor:hover?props.selectedColor:props.boxColor}} id={props.id} className="customBox" onClick={handleClick} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}/>
+    <div style={{backgroundColor:hover?props.selectedColor:props.boxColor}} id = {`${props.id}`} className="customBox" onClick={handleClick} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}/>
   )
 })
 
