@@ -1,226 +1,165 @@
 import './App.css';
-import { useState } from 'react';
+import { useCallback, useReducer } from 'react';
 import Box from './components/Box';
-import { CirclePicker } from 'react-color';
-import { KEYCOLOR,KEYCOLORLIST,KEYSTACK,KEYSTACKINDEX,KEYSTACKPOINTER } from './constant/constants';
+import ColorPicker from './components/ColorPicker';
+import { KEY_STATE, INITIAL_STATE } from './constant/constants';
 
-
-function initializeColorList(){
-  let colorList = window.localStorage.getItem(KEYCOLORLIST);
-  if(colorList){
-    colorList = colorList.split(",");
-  }
-  else{
-    colorList = Array(256).fill("white");
-  }
-  return colorList;
+function handleLocalStorage(state){
+  window.localStorage.setItem(KEY_STATE,JSON.stringify(state));
 }
 
-function initializeColor(){
-  let color = window.localStorage.getItem(KEYCOLOR);
-  if(color){
+const InitializeState = (init) => {
+  const state = {
+    ...INITIAL_STATE,
+    ...(JSON.parse(window.localStorage.getItem(KEY_STATE))),
+  };
+  handleLocalStorage(state);
+  return state;
+}
+
+/*
+selectedColor:"white",
+colorOfCells:[Array(256).fill("white")],
+cellsColorHistory:[],
+cellsIndexHistory:[],
+cellsCurrentPointer:-1,
+*/
+const insertStateChanges=(cellsColorHistory,cellsIndexHistory,prevColor,currentColor,id)=>{
+  cellsColorHistory.push(prevColor);
+  cellsColorHistory.push(currentColor);
+  cellsIndexHistory.push(id);
+  cellsIndexHistory.push(id);
+}
+
+const handleCellClick = (prevState,id) => {
+  const prevPointer = prevState.cellsCurrentPointer;
+  if(prevPointer%2 == 0){
+    prevState.cellsColorHistory.splice(prevPointer);
+    prevState.cellsIndexHistory.splice(prevPointer);
   }
-  else{
-    color = "white";
+  insertStateChanges(prevState.cellsColorHistory,prevState.cellsIndexHistory,prevState.colorOfCells[id],prevState.selectedColor,id);
+  prevState.colorOfCells[id] = prevState.selectedColor;
+  return {
+    ...prevState,
+    cellsCurrentPointer : prevPointer%2 ? prevPointer + 2 : prevPointer+1,
   }
-  return color;
 }
+const handleUndo=(prevState)=>{
+  if(prevState.cellsCurrentPointer === -1 || prevState.cellsCurrentPointer === 0){return null;}
+  const prevPointer = prevState.cellsCurrentPointer;
+  const newPointer = prevPointer%2?prevPointer-1:prevPointer-2;
+  prevState.colorOfCells[prevState.cellsIndexHistory[newPointer]] = prevState.cellsColorHistory[newPointer];
 
-function initializeStack(){
-  let stack = window.localStorage.getItem(KEYSTACK);
-  if(stack){
-    stack = stack.split(",");
+  return {
+    ...prevState,
+    cellsCurrentPointer: newPointer,
   }
-  else{
-    stack = [];
+}
+
+const handleRedo=(prevState)=>{
+  if(prevState.cellsCurrentPointer+1 >= prevState.cellsColorHistory.length){return null;}
+  const prevPointer = prevState.cellsCurrentPointer;
+  const newPointer = prevPointer%2?prevPointer+2:prevPointer+1;
+  prevState.colorOfCells[prevState.cellsIndexHistory[newPointer]] = prevState.cellsColorHistory[newPointer];
+  return {
+    ...prevState,
+    cellsCurrentPointer : newPointer,
   }
-  return stack;
 }
 
-function initializeStackIndex(){
-  let stackIndex = window.localStorage.getItem(KEYSTACKINDEX);
-  if(stackIndex){
-    stackIndex = stackIndex.split(',');
+const handleReset = ()=>{
+  return {
+    ...INITIAL_STATE,
+  };
+}
+const handleColorPick=(prevState,colorName)=>{
+  return {
+    ...prevState,
+    selectedColor : colorName,
   }
-  else{
-    stackIndex = [];
+}
+
+//CHANGE_CELL_COLOR, UNDO, REDO, RESET, COLOR_PICK
+function reducer(prevState,action){
+  switch(action.type){
+    case "CHANGE_CELL_COLOR":{//change cell color
+      const newState = {
+        ...prevState,
+        ...handleCellClick(structuredClone(prevState),action.id),
+      };
+      handleLocalStorage(newState);
+      return newState;
+    }
+
+    case "UNDO":{
+      const newState = {
+        ...prevState,
+        ...handleUndo(structuredClone(prevState)),
+      };
+      handleLocalStorage(newState);
+      return newState;
+    }
+
+    case "REDO":{
+      const newState = {
+        ...prevState,
+        ...handleRedo(structuredClone(prevState)),
+      };
+      handleLocalStorage(newState);
+      return newState;
+    }
+
+    case "RESET":{
+      const newState = {
+        ...handleReset(),
+      };
+      handleLocalStorage(newState);
+      return newState;
+    }
+    case "COLOR_PICK":{
+      const newState = {
+        ...prevState,
+        ...handleColorPick(structuredClone(prevState),action.colorName),
+      }
+      handleLocalStorage(newState);
+      return newState;
+    }
+    default:
+      return prevState;
   }
-  return stackIndex;
-}
-
-function initializeStackPointer(){
-  let stackPointer = window.localStorage.getItem(KEYSTACKPOINTER);
-  if(stackPointer == null){
-    stackPointer = -1;
-  }
-  return stackPointer;
-}
-
-
-function handleLocalStorageColorList(colorList){
-  window.localStorage.setItem(KEYCOLORLIST,colorList.toString());
-}
-
-function handleLocalStorageColor(color){
-  window.localStorage.setItem(KEYCOLOR,color);
-}
-
-function handleLocalStorageStack(stack){
-  window.localStorage.setItem(KEYSTACK,stack.toString());
-}
-
-function handleLocalStorageStackIndex(stackIndex){
-  window.localStorage.setItem(KEYSTACKINDEX,stackIndex.toString());
-}
-
-function handleLocalStorageStackPointer(stackPointer){
-  window.localStorage.setItem(KEYSTACKPOINTER,stackPointer);
 }
 
 function App() {
-  const [color,setColor] = useState(initializeColor());
-  const [colorList,setColorList] = useState(initializeColorList());
-  const [stack,setStack] = useState(initializeStack());
-  const [stackIndex,setStackIndex] = useState(initializeStackIndex());
-  const [stackPointer,setStackPointer] = useState(initializeStackPointer());
 
+  const [state,dispatch] = useReducer(reducer,{},InitializeState);
 
-  function handleClick(event){
-    let prevColorList = [...colorList];//create a new array since directly equating gives the same object
-    let prevColor = prevColorList[+event.target.id];
-
-    let newStack = [...stack];
-    let newStackIndex = [...stackIndex];
-    let newStackPointer = stackPointer;
-
-    if(newStackPointer%2 == 0){
-      newStack.length = stackPointer;
-      newStackIndex.length = stackPointer;
-      newStack.push(prevColor);
-      newStack.push(color);
-      newStackIndex.push(event.target.id);
-      newStackIndex.push(event.target.id);
-      newStackPointer = +newStackPointer + 1;
-    }
-    else{
-      newStack.push(prevColor);
-      newStack.push(color);
-      newStackIndex.push(event.target.id);
-      newStackIndex.push(event.target.id);
-      newStackPointer = +newStackPointer + 2;
-    }
-
-    newStackPointer = newStackPointer.toString();
-
-    prevColorList[+event.target.id] = color;
-
-    setColorList(prevColorList);
-    handleLocalStorageColorList(prevColorList);
-
-    setStack(newStack);
-    handleLocalStorageStack(newStack);
-
-    setStackIndex(newStackIndex);
-    handleLocalStorageStackIndex(newStackIndex);
-
-    setStackPointer(newStackPointer);
-    handleLocalStorageStackPointer(newStackPointer);
-
-  }
-  function handleMouseEnter(event){
-    event.target.style = `background-color:${color};`;
-  }
-  function handleMouseLeave(event){
-    event.target.style = `background-color:${colorList[event.target.id]};`
-  }
-  function handleColorPick(colorName,mouseEvent){
-    setColor(colorName.hex);
-    handleLocalStorageColor(colorName.hex);
-  }
-  function handleResetButton(){
-    setColor("white");
-    handleLocalStorageColor("white");
-
-    setColorList(Array(256).fill("white"));
-    handleLocalStorageColorList(Array(256).fill("white"));
-
-    setStack([]);
-    handleLocalStorageStack([]);
-
-    setStackIndex([]);
-    handleLocalStorageStackIndex([]);
-
-    setStackPointer("-1");
-    handleLocalStorageStackPointer("-1");
-  }
-  function handleUndoButton(){
-    if(stackPointer === "-1" || stackPointer === "0"){return;}
-
-    let newStackPointer = stackPointer;
-
-    if(newStackPointer%2 == 0){
-      newStackPointer = +newStackPointer - 2;
-    }
-    else{
-      newStackPointer = +newStackPointer - 1;
-    }
-    let prevColorList = [...colorList];
-    prevColorList[+stackIndex[+newStackPointer]] = stack[+newStackPointer];
-
-    newStackPointer = newStackPointer.toString();
-
-    setColorList(prevColorList);
-    handleLocalStorageColorList(prevColorList);
-
-    setStackPointer(newStackPointer);
-    handleLocalStorageStackPointer(newStackPointer);
-  }
-  function handleRedoButton(){
-    if((+stackPointer + 1) >= stack.length){
-      return;
-    }
-    let newStackPointer = stackPointer;
-    if(newStackPointer%2 == 0){
-      newStackPointer = +newStackPointer + 1;
-    }
-    else{
-      newStackPointer = +newStackPointer + 2;
-    }
-
-
-
-    let prevColorList = [...colorList];
-    prevColorList[+stackIndex[+newStackPointer]] = stack[+newStackPointer];
-
-    newStackPointer = newStackPointer.toString();
-    setStackPointer(newStackPointer);
-    handleLocalStorageStackPointer(newStackPointer);
-
-    setColorList(prevColorList);
-    handleLocalStorageColorList(prevColorList);
-  }
+  const features = [
+    {type: 'RESET', label: 'Reset'},
+    {type: 'UNDO', label: 'Undo'},
+    {type: 'REDO', label: 'Redo'},
+  ];
+  
   return (
     <>
     
-    <div className="globalContainer">
-      <div className="colorPicker">
-        <CirclePicker onChange={handleColorPick} />
-      </div>
-
-      <div className="container">
-        <div className="wrapper">
-          {colorList.map((item,index) => {
-            return <Box key={index} boxColor={item} id={`${index}`} onClick={handleClick} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}/>;
-          })}
+      <div className="globalContainer">
+        
+        <ColorPicker onChange={(colorName)=>{dispatch({type:"COLOR_PICK",colorName:colorName.hex})}}/>
+        <div className="container">
+          <div className="wrapper">
+            {state.colorOfCells.map((item,index) => {
+              return <Box key={index} boxColor={item} id={`${index}`} onClick={dispatch} selectedColor={state.selectedColor}/>;
+            })}
+          </div>
         </div>
-      </div>
+        
+        <div className="features">
+          {features.map((item,index) => {
+            return <button key={item.type} onClick={()=>{dispatch({type:item.type})}}>{item.label}</button>
+            })}
+        </div>
 
-      <div className="features">
-        <button onClick={handleResetButton}>RESET</button>
-        <button onClick={handleUndoButton}>UNDO</button>
-        <button onClick={handleRedoButton}>REDO</button>
       </div>
-    </div>
 
     </>
   );
