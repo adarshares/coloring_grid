@@ -3,18 +3,18 @@ import "./../App.css";
 
 const Box = memo((props)=>{
   const [hover,setHover] = useState(false);
-  const HandleMouseEnter=()=>{
+  const handleMouseEnter=()=>{
     setHover(true);
   }
-  const HandleMouseLeave = () => {
+  const handleMouseLeave = () => {
     setHover(false);
   }
-  const HandleClick = () => {
-    props.onClick({type:"CELL_CLICK",id:+props.id})
+  const handleClick = () => {
+    props.onClick({type:"CHANGE_CELL_COLOR",id:+props.id})
   }
-  console.log(`component ${props.id} rendered`)
+  //console.log(`component ${props.id} rendered`)
   return (
-    <div style={{backgroundColor:hover?props.selectedColor:props.boxColor}} id={props.id} className="customBox" onClick={HandleClick} onMouseEnter={HandleMouseEnter} onMouseLeave={HandleMouseLeave}/>
+    <div style={{backgroundColor:hover?props.selectedColor:props.boxColor}} id={props.id} className="customBox" onClick={handleClick} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}/>
   )
 })
 

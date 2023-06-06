@@ -2,24 +2,18 @@ import './App.css';
 import { useCallback, useReducer } from 'react';
 import Box from './components/Box';
 import ColorPicker from './components/ColorPicker';
-import { KEY_STATE } from './constant/constants';
+import { KEY_STATE, INITIAL_STATE } from './constant/constants';
 
-
-
-function HandleLocalStorage(state){
+function handleLocalStorage(state){
   window.localStorage.setItem(KEY_STATE,JSON.stringify(state));
 }
 
 const InitializeState = (init) => {
   const state = {
-    selectedColor:"white",
-    colorOfCells:Array(256).fill("white"),
-    cellsColorHistory:[],
-    cellsIndexHistory:[],
-    cellsHistoryPointer:-1,
+    ...INITIAL_STATE,
     ...(JSON.parse(window.localStorage.getItem(KEY_STATE))),
   };
-  HandleLocalStorage(state);
+  handleLocalStorage(state);
   return state;
 }
 
@@ -28,110 +22,106 @@ selectedColor:"white",
 colorOfCells:[Array(256).fill("white")],
 cellsColorHistory:[],
 cellsIndexHistory:[],
-cellsHistoryPointer:-1,
+cellsCurrentPointer:-1,
 */
-const InsertStateChanges=(cellsColorHistory,cellsIndexHistory,prevColor,currentColor,id)=>{
+const insertStateChanges=(cellsColorHistory,cellsIndexHistory,prevColor,currentColor,id)=>{
   cellsColorHistory.push(prevColor);
   cellsColorHistory.push(currentColor);
   cellsIndexHistory.push(id);
   cellsIndexHistory.push(id);
 }
 
-const HandleCellClick = (prevState,id) => {
-  const prevPointer = prevState.cellsHistoryPointer;
+const handleCellClick = (prevState,id) => {
+  const prevPointer = prevState.cellsCurrentPointer;
   if(prevPointer%2 == 0){
     prevState.cellsColorHistory.splice(prevPointer);
     prevState.cellsIndexHistory.splice(prevPointer);
   }
-  InsertStateChanges(prevState.cellsColorHistory,prevState.cellsIndexHistory,prevState.colorOfCells[id],prevState.selectedColor,id);
+  insertStateChanges(prevState.cellsColorHistory,prevState.cellsIndexHistory,prevState.colorOfCells[id],prevState.selectedColor,id);
   prevState.colorOfCells[id] = prevState.selectedColor;
   return {
     ...prevState,
-    cellsHistoryPointer : prevPointer%2?prevPointer+2:prevPointer+1,
+    cellsCurrentPointer : prevPointer%2 ? prevPointer + 2 : prevPointer+1,
   }
 }
-const HandleUndo=(prevState)=>{
-  if(prevState.cellsHistoryPointer === -1 || prevState.cellsHistoryPointer === 0){return null;}
-  const prevPointer = prevState.cellsHistoryPointer;
+const handleUndo=(prevState)=>{
+  if(prevState.cellsCurrentPointer === -1 || prevState.cellsCurrentPointer === 0){return null;}
+  const prevPointer = prevState.cellsCurrentPointer;
   const newPointer = prevPointer%2?prevPointer-1:prevPointer-2;
   prevState.colorOfCells[prevState.cellsIndexHistory[newPointer]] = prevState.cellsColorHistory[newPointer];
 
   return {
     ...prevState,
-    cellsHistoryPointer: newPointer,
+    cellsCurrentPointer: newPointer,
   }
 }
 
-const HandleRedo=(prevState)=>{
-  if(prevState.cellsHistoryPointer+1 >= prevState.cellsColorHistory.length){return null;}
-  const prevPointer = prevState.cellsHistoryPointer;
+const handleRedo=(prevState)=>{
+  if(prevState.cellsCurrentPointer+1 >= prevState.cellsColorHistory.length){return null;}
+  const prevPointer = prevState.cellsCurrentPointer;
   const newPointer = prevPointer%2?prevPointer+2:prevPointer+1;
   prevState.colorOfCells[prevState.cellsIndexHistory[newPointer]] = prevState.cellsColorHistory[newPointer];
   return {
     ...prevState,
-    cellsHistoryPointer : newPointer,
+    cellsCurrentPointer : newPointer,
   }
 }
 
-const HandleReset = ()=>{
+const handleReset = ()=>{
   return {
-    selectedColor:"white",
-    colorOfCells:Array(256).fill("white"),
-    cellsColorHistory:[],
-    cellsIndexHistory:[],
-    cellsHistoryPointer:-1,
+    ...INITIAL_STATE,
   };
 }
-const HandleColorPick=(prevState,colorName)=>{
+const handleColorPick=(prevState,colorName)=>{
   return {
     ...prevState,
     selectedColor : colorName,
   }
 }
 
-//CELL_CLICK, UNDO, REDO, RESET, COLOR_PICK
+//CHANGE_CELL_COLOR, UNDO, REDO, RESET, COLOR_PICK
 function reducer(prevState,action){
   switch(action.type){
-    case "CELL_CLICK":{
+    case "CHANGE_CELL_COLOR":{//change cell color
       const newState = {
         ...prevState,
-        ...HandleCellClick(structuredClone(prevState),action.id),
+        ...handleCellClick(structuredClone(prevState),action.id),
       };
-      HandleLocalStorage(newState);
+      handleLocalStorage(newState);
       return newState;
     }
 
     case "UNDO":{
       const newState = {
         ...prevState,
-        ...HandleUndo(structuredClone(prevState)),
+        ...handleUndo(structuredClone(prevState)),
       };
-      HandleLocalStorage(newState);
+      handleLocalStorage(newState);
       return newState;
     }
 
     case "REDO":{
       const newState = {
         ...prevState,
-        ...HandleRedo(structuredClone(prevState)),
+        ...handleRedo(structuredClone(prevState)),
       };
-      HandleLocalStorage(newState);
+      handleLocalStorage(newState);
       return newState;
     }
 
     case "RESET":{
       const newState = {
-        ...HandleReset(),
+        ...handleReset(),
       };
-      HandleLocalStorage(newState);
+      handleLocalStorage(newState);
       return newState;
     }
     case "COLOR_PICK":{
       const newState = {
         ...prevState,
-        ...HandleColorPick(structuredClone(prevState),action.colorName),
+        ...handleColorPick(structuredClone(prevState),action.colorName),
       }
-      HandleLocalStorage(newState);
+      handleLocalStorage(newState);
       return newState;
     }
     default:
@@ -144,9 +134,9 @@ function App() {
   const [state,dispatch] = useReducer(reducer,{},InitializeState);
 
   const features = [
-    {type: 'RESET', label: 'Reset', onClick: 'RESET'},
-    {type: 'UNDO', label: 'Undo', onClick: 'UNDO'},
-    {type: 'REDO', label: 'Redo', onClick: 'REDO'},
+    {type: 'RESET', label: 'Reset'},
+    {type: 'UNDO', label: 'Undo'},
+    {type: 'REDO', label: 'Redo'},
   ];
   
   return (
@@ -165,7 +155,7 @@ function App() {
         
         <div className="features">
           {features.map((item,index) => {
-            return <button key={item.type} onClick={()=>{dispatch({type:item.onClick})}}>{item.label}</button>
+            return <button key={item.type} onClick={()=>{dispatch({type:item.type})}}>{item.label}</button>
             })}
         </div>
 
